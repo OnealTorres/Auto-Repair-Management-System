@@ -1,12 +1,13 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QMessageBox, QTableWidgetItem
 from PyQt6 import uic
+from datetime import date, timedelta
+from PyQt6.QtCore import QRect, QDate
+
 from chart import BarChart
 import psycopg2
 from psycopg2 import extras
-from datetime import date, timedelta
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import QRect, QDate
+import configparser
 
 
 class AddBook(QWidget):
@@ -22,12 +23,20 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super(MainWindow, self).__init__()
+
+        # Create a ConfigParser object
+        config = configparser.ConfigParser()
+
+        # Read the config.ini file
+        config.read('config.ini')
+
         self.conn = psycopg2.connect(
-            host="localhost",
-            port="5432",
-            database="arms_db",
-            user="postgres",
-            password="09232001")
+            host=config.get('conn', 'host'),
+            port=config.get('conn', 'port'),
+            database=config.get('conn', 'database'),
+            user=config.get('conn', 'user'),
+            password=config.get('conn', 'password')
+        )
         # Load the first UI file
         self.load_login()
 
