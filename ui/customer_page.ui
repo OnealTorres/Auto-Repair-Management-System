@@ -59,19 +59,6 @@ padding-left: 15px;</string>
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QLabel" name="label_104">
-   <property name="geometry">
-    <rect>
-     <x>230</x>
-     <y>45</y>
-     <width>261</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Customer Name</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="btn_settings">
    <property name="geometry">
     <rect>
@@ -433,10 +420,29 @@ padding-left: 15px;</string>
     <bool>false</bool>
    </property>
   </widget>
+  <widget class="QLineEdit" name="txt_email">
+   <property name="geometry">
+    <rect>
+     <x>230</x>
+     <y>30</y>
+     <width>421</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(255, 255, 255);
+padding-left: 15px;</string>
+   </property>
+   <property name="placeholderText">
+    <string>Email</string>
+   </property>
+   <property name="clearButtonEnabled">
+    <bool>false</bool>
+   </property>
+  </widget>
   <zorder>label</zorder>
   <zorder>btn_customer_add</zorder>
   <zorder>txt_customerfname</zorder>
-  <zorder>label_104</zorder>
   <zorder>btn_settings</zorder>
   <zorder>label_33</zorder>
   <zorder>btn_dashboard</zorder>
@@ -451,6 +457,7 @@ padding-left: 15px;</string>
   <zorder>btn_customer_view</zorder>
   <zorder>txt_customermname</zorder>
   <zorder>txt_customerlname</zorder>
+  <zorder>txt_email</zorder>
  </widget>
  <resources/>
  <connections/>

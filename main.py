@@ -212,7 +212,7 @@ class MainWindow(QMainWindow):
         cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute(
             "SELECT book_id,book_type,book_status,book_total,book_vcl_plate,book_vcl_brand,book_vcl_model,CONCAT(emp_fname,' ',emp_mname,' ',emp_lname) AS employee_name,CONCAT(cus_fname,' ',cus_mname,' ',cus_lname) AS customer_name,srv_name,book_details,DATE(book_start) AS book_start,DATE(book_end) AS book_end,emp_id,cus_id,srv_id,DATE(BOOK.date_created) AS date_created" +
-            " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) ORDER BY(date_created) DESC")
+            " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE book_status != 'Finished' ORDER BY(date_created) DESC ")
         rows = cur.fetchall()
 
         if rows:
@@ -294,7 +294,7 @@ class MainWindow(QMainWindow):
 
         cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute(
-            "SELECT srv_category, srv_name, srv_time, srv_fee, srv_type FROM SERVICE")
+            "SELECT srv_category, srv_name, srv_time, srv_fee, srv_type FROM SERVICE ")
         rows = cur.fetchall()
 
         if rows:
@@ -318,7 +318,7 @@ class MainWindow(QMainWindow):
         self.emp_id = ""
         cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute(
-            "SELECT emp_id, emp_fname, emp_mname, emp_lname,emp_type,emp_mobile,emp_email,emp_address,emp_sex,emp_dob,emp_status,emp_service FROM EMPLOYEE")
+            "SELECT emp_id, emp_fname, emp_mname, emp_lname,emp_type,emp_mobile,emp_email,emp_address,emp_sex,emp_dob,emp_status,emp_service FROM EMPLOYEE ORDER BY(date_created) DESC")
         rows = cur.fetchall()
 
         if rows:
@@ -428,7 +428,7 @@ class MainWindow(QMainWindow):
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
             cur.execute(
                 "SELECT book_id,book_type,book_status,book_total,book_vcl_plate,book_vcl_brand,book_vcl_model,CONCAT(emp_fname,' ',emp_mname,' ',emp_lname) AS employee_name,CONCAT(cus_fname,' ',cus_mname,' ',cus_lname) AS customer_name,srv_name,book_details,DATE(book_start) AS book_start,DATE(book_end) AS book_end,emp_id,cus_id,srv_id,DATE(BOOK.date_created) AS date_created" +
-                " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE cus_id="+self.ui.txt_customerid.text()+"")
+                " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE book_status != 'Finished' AND cus_id="+self.ui.txt_customerid.text()+" ORDER BY(date_created) DESC")
             rows = cur.fetchall()
 
             self.ui.tbl_bookings.clearContents()
@@ -452,7 +452,7 @@ class MainWindow(QMainWindow):
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
             cur.execute(
                 "SELECT book_id,book_type,book_status,book_total,book_vcl_plate,book_vcl_brand,book_vcl_model,CONCAT(emp_fname,' ',emp_mname,' ',emp_lname) AS employee_name,CONCAT(cus_fname,' ',cus_mname,' ',cus_lname) AS customer_name,srv_name,book_details,DATE(book_start) AS book_start,DATE(book_end) AS book_end,emp_id,cus_id,srv_id,DATE(BOOK.date_created) AS date_created" +
-                " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE book_id="+self.ui.txt_bookid.text()+"")
+                " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE book_status != 'Finished' AND book_id="+self.ui.txt_bookid.text()+"")
             row = cur.fetchone()
 
             self.ui.tbl_bookings.clearContents()
@@ -541,9 +541,13 @@ class MainWindow(QMainWindow):
         if (self.ui.txt_customerfname.text() == "" or self.ui.txt_customerlname.text() == ""):
             self.on_admin_customer_clicked()
         else:
+            add_email_query = ''
+            if (self.ui.txt_email.text()):
+                add_email_query = " AND cus_email='"+self.ui.txt_email.text()+"' "
+
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
             cur.execute(
-                "SELECT cus_id, cus_fname, cus_mname, cus_lname,cus_mobile,cus_email,cus_sex,cus_address,cus_status,DATE(date_created) AS date_created FROM CUSTOMER WHERE cus_fname='"+self.ui.txt_customerfname.text()+"' AND cus_mname='"+self.ui.txt_customermname.text()+"' AND cus_lname='"+self.ui.txt_customerlname.text()+"'")
+                "SELECT cus_id, cus_fname, cus_mname, cus_lname,cus_mobile,cus_email,cus_sex,cus_address,cus_status,DATE(date_created) AS date_created FROM CUSTOMER WHERE cus_fname='"+self.ui.txt_customerfname.text()+"' AND cus_mname='"+self.ui.txt_customermname.text()+"' AND cus_lname='"+self.ui.txt_customerlname.text()+"' "+add_email_query)
             row = cur.fetchone()
             if row:
 
@@ -719,9 +723,13 @@ class MainWindow(QMainWindow):
         if (self.ui.txt_empfname.text() == "" or self.ui.txt_emplname.text() == ""):
             self.on_admin_employees_clicked()
         else:
+            add_email_query = ''
+            if (self.ui.txt_email.text()):
+                add_email_query = " AND emp_email='"+self.ui.txt_email.text()+"' "
+
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
             cur.execute(
-                "SELECT emp_id,emp_fname,emp_mname, emp_lname,emp_type,emp_mobile,emp_email,emp_password,emp_address,emp_sex,emp_dob,emp_status,emp_service FROM EMPLOYEE WHERE emp_fname='"+self.ui.txt_empfname.text()+"' AND emp_mname='"+self.ui.txt_empmname.text()+"' AND emp_lname='"+self.ui.txt_emplname.text()+"'")
+                "SELECT emp_id,emp_fname,emp_mname, emp_lname,emp_type,emp_mobile,emp_email,emp_password,emp_address,emp_sex,emp_dob,emp_status,emp_service FROM EMPLOYEE WHERE emp_fname='"+self.ui.txt_empfname.text()+"' AND emp_mname='"+self.ui.txt_empmname.text()+"' AND emp_lname='"+self.ui.txt_emplname.text()+"' "+add_email_query)
             row = cur.fetchone()
             if row:
 
@@ -811,7 +819,7 @@ class MainWindow(QMainWindow):
     # employee view
 
     def on_employee_view_clicked(self):
-        if (self.emp_id and self.is_numeric(self.emp_id)):
+        if (self.emp_id):
             self.load_admin_ui_file("ui/admin_update_employees.ui")
             self.ui.btn_update_emp.clicked.connect(
                 self.on_update_employee_clicked)
@@ -1119,7 +1127,7 @@ class MainWindow(QMainWindow):
         cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute(
             "SELECT book_id,book_type,book_status,book_total,book_vcl_plate,book_vcl_brand,book_vcl_model,CONCAT(emp_fname,' ',emp_mname,' ',emp_lname) AS employee_name,CONCAT(cus_fname,' ',cus_mname,' ',cus_lname) AS customer_name,srv_name,book_details,DATE(book_start) AS book_start,DATE(book_end) AS book_end,emp_id,cus_id,srv_id,DATE(BOOK.date_created) AS date_created" +
-            " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) ORDER BY(date_created) DESC")
+            " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE book_status != 'Finished' ORDER BY(date_created) DESC")
         rows = cur.fetchall()
 
         if rows:
@@ -1135,7 +1143,7 @@ class MainWindow(QMainWindow):
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
             cur.execute(
                 "SELECT book_id,book_type,book_status,book_total,book_vcl_plate,book_vcl_brand,book_vcl_model,CONCAT(emp_fname,' ',emp_mname,' ',emp_lname) AS employee_name,CONCAT(cus_fname,' ',cus_mname,' ',cus_lname) AS customer_name,srv_name,book_details,DATE(book_start) AS book_start,DATE(book_end) AS book_end,emp_id,cus_id,srv_id,DATE(BOOK.date_created) AS date_created" +
-                " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE book_id="+self.ui.txt_bookid.text()+"")
+                " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE book_status != 'Finished' AND book_id="+self.ui.txt_bookid.text()+"")
             row = cur.fetchone()
 
             self.ui.tbl_bookings.clearContents()
@@ -1228,7 +1236,7 @@ class MainWindow(QMainWindow):
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
             cur.execute(
                 "SELECT book_id,book_type,book_status,book_total,book_vcl_plate,book_vcl_brand,book_vcl_model,CONCAT(emp_fname,' ',emp_mname,' ',emp_lname) AS employee_name,CONCAT(cus_fname,' ',cus_mname,' ',cus_lname) AS customer_name,srv_name,book_details,DATE(book_start) AS book_start,DATE(book_end) AS book_end,emp_id,cus_id,srv_id,DATE(BOOK.date_created) AS date_created" +
-                " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE cus_id="+self.ui.txt_customerid.text()+"")
+                " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE book_status != 'Finished' AND cus_id="+self.ui.txt_customerid.text()+" ORDER BY(date_created) DESC")
             rows = cur.fetchall()
 
             self.ui.tbl_bookings.clearContents()
@@ -1583,9 +1591,13 @@ class MainWindow(QMainWindow):
         if (self.ui.txt_customerfname.text() == "" or self.ui.txt_customerlname.text() == ""):
             self.on_customer_clicked()
         else:
+            add_email_query = ''
+            if (self.ui.txt_email.text()):
+                add_email_query = " AND cus_email='"+self.ui.txt_email.text()+"' "
+
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
             cur.execute(
-                "SELECT cus_id, cus_fname, cus_mname, cus_lname,cus_mobile,cus_email,cus_sex,cus_address,cus_status,DATE(date_created) AS date_created FROM CUSTOMER WHERE cus_fname='"+self.ui.txt_customerfname.text()+"' AND cus_mname='"+self.ui.txt_customermname.text()+"' AND cus_lname='"+self.ui.txt_customerlname.text()+"'")
+                "SELECT cus_id, cus_fname, cus_mname, cus_lname,cus_mobile,cus_email,cus_sex,cus_address,cus_status,DATE(date_created) AS date_created FROM CUSTOMER WHERE cus_fname='"+self.ui.txt_customerfname.text()+"' AND cus_mname='"+self.ui.txt_customermname.text()+"' AND cus_lname='"+self.ui.txt_customerlname.text()+"' "+add_email_query)
             row = cur.fetchone()
             if row:
 
@@ -1658,7 +1670,7 @@ class MainWindow(QMainWindow):
 
     # customer update
     def on_customer_view_clicked(self):
-        if (self.cus_id and self.is_numeric(self.cus_id)):
+        if (self.cus_id):
             self.load_ui_file("ui/customer_update_page.ui")
             self.ui.btn_update_cus.clicked.connect(
                 self.on_btn_update_cus_clicked)

@@ -276,7 +276,7 @@ background-color: rgb(0, 0, 0);</string>
    <property name="geometry">
     <rect>
      <x>670</x>
-     <y>64</y>
+     <y>74</y>
      <width>201</width>
      <height>31</height>
     </rect>
@@ -292,37 +292,11 @@ padding-left: 15px;</string>
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QLabel" name="btn_search_customer">
-   <property name="geometry">
-    <rect>
-     <x>400</x>
-     <y>70</y>
-     <width>21</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="autoFillBackground">
-    <bool>false</bool>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">display: flex;
-background-color: rgb(255, 255, 255);</string>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="pixmap">
-    <pixmap>img/search.png</pixmap>
-   </property>
-   <property name="scaledContents">
-    <bool>true</bool>
-   </property>
-  </widget>
   <widget class="QLineEdit" name="txt_customerfname">
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>64</y>
+     <y>74</y>
      <width>201</width>
      <height>31</height>
     </rect>
@@ -342,7 +316,7 @@ padding-left: 15px;</string>
    <property name="geometry">
     <rect>
      <x>450</x>
-     <y>64</y>
+     <y>74</y>
      <width>201</width>
      <height>31</height>
     </rect>
@@ -362,7 +336,7 @@ padding-left: 15px;</string>
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>104</y>
+     <y>114</y>
      <width>731</width>
      <height>361</height>
     </rect>
@@ -447,7 +421,7 @@ padding-left: 15px;</string>
    <property name="geometry">
     <rect>
      <x>880</x>
-     <y>64</y>
+     <y>74</y>
      <width>81</width>
      <height>31</height>
     </rect>
@@ -466,19 +440,27 @@ border-radius: 5px;
      <normaloff>img/plus-button.png</normaloff>img/plus-button.png</iconset>
    </property>
   </widget>
-  <widget class="QLabel" name="label_104">
+  <widget class="QLineEdit" name="txt_email">
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>39</y>
-     <width>261</width>
-     <height>21</height>
+     <y>30</y>
+     <width>421</width>
+     <height>31</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Customer Name</string>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(255, 255, 255);
+padding-left: 15px;</string>
+   </property>
+   <property name="placeholderText">
+    <string>Email</string>
+   </property>
+   <property name="clearButtonEnabled">
+    <bool>false</bool>
    </property>
   </widget>
+  <zorder>txt_customerfname</zorder>
   <zorder>label</zorder>
   <zorder>btn_dashboard</zorder>
   <zorder>label_2</zorder>
@@ -493,12 +475,10 @@ border-radius: 5px;
   <zorder>btn_employees</zorder>
   <zorder>label_13</zorder>
   <zorder>txt_customerlname</zorder>
-  <zorder>btn_search_customer</zorder>
-  <zorder>txt_customerfname</zorder>
   <zorder>txt_customermname</zorder>
   <zorder>tbl_customer</zorder>
   <zorder>search_btn</zorder>
-  <zorder>label_104</zorder>
+  <zorder>txt_email</zorder>
  </widget>
  <resources/>
  <connections/>
