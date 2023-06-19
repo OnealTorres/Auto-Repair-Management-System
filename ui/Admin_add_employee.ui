@@ -306,7 +306,7 @@ border-radius: 5px;
    </property>
    <property name="minimumDateTime">
     <datetime>
-     <hour>0</hour>
+     <hour>16</hour>
      <minute>0</minute>
      <second>0</second>
      <year>1970</year>
@@ -695,7 +695,7 @@ background-color: rgb(0, 0, 0);
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>520</y>
+     <y>530</y>
      <width>31</width>
      <height>24</height>
     </rect>

@@ -189,7 +189,7 @@ class MainWindow(QMainWindow):
 
         cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute("SELECT inv_id, CONCAT(cus_fname,' ',cus_mname,' ',cus_lname),srv_name,DATE(INVOICE.date_created) AS date_finished" +
-                    " FROM INVOICE INNER JOIN BOOK USING(book_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) ORDER BY(date_finished) LIMIT 10")
+                    " FROM INVOICE INNER JOIN BOOK USING(book_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) ORDER BY(date_finished) DESC LIMIT 10")
         rows = cur.fetchall()
 
         if rows:
@@ -215,11 +215,14 @@ class MainWindow(QMainWindow):
             " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE book_status != 'Finished' ORDER BY(date_created) DESC ")
         rows = cur.fetchall()
 
+        row_count = 1
         if rows:
             for row_idx, row_data in enumerate(rows):
                 for col_idx, col_data in enumerate(row_data.values()):
                     item = QTableWidgetItem(str(col_data))
                     self.ui.tbl_bookings.setItem(row_idx, col_idx, item)
+                self.ui.tbl_bookings.insertRow(row_count)
+                row_count += 1
         # Close the cursor
         cur.close()
 
@@ -256,11 +259,15 @@ class MainWindow(QMainWindow):
             "SELECT cus_id, cus_fname, cus_mname, cus_lname,cus_mobile,cus_email,cus_sex,cus_address,cus_status,DATE(date_created) FROM CUSTOMER ORDER BY(date_created)")
         rows = cur.fetchall()
 
+        row_count = 1
         if rows:
             for row_idx, row_data in enumerate(rows):
                 for col_idx, col_data in enumerate(row_data.values()):
                     item = QTableWidgetItem(str(col_data))
                     self.ui.tbl_customer.setItem(row_idx, col_idx, item)
+                self.ui.tbl_customer.insertRow(row_count)
+                row_count += 1
+
         # Close the cursor
         cur.close()
 
@@ -294,14 +301,16 @@ class MainWindow(QMainWindow):
 
         cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute(
-            "SELECT srv_category, srv_name, srv_time, srv_fee, srv_type FROM SERVICE ")
+            "SELECT srv_category, srv_name, srv_time, srv_fee, srv_type FROM SERVICE")
         rows = cur.fetchall()
-
+        row_count = 1
         if rows:
             for row_idx, row_data in enumerate(rows):
                 for col_idx, col_data in enumerate(row_data.values()):
                     item = QTableWidgetItem(str(col_data))
                     self.ui.tbl_services.setItem(row_idx, col_idx, item)
+                self.ui.tbl_services.insertRow(row_count)
+                row_count += 1
         # Close the cursor and the connection
         cur.close()
 
@@ -318,14 +327,17 @@ class MainWindow(QMainWindow):
         self.emp_id = ""
         cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute(
-            "SELECT emp_id, emp_fname, emp_mname, emp_lname,emp_type,emp_mobile,emp_email,emp_address,emp_sex,emp_dob,emp_status,emp_service FROM EMPLOYEE ORDER BY(date_created) DESC")
+            "SELECT emp_id, emp_fname, emp_mname, emp_lname,emp_type,emp_mobile,emp_email,emp_address,emp_sex,emp_dob,emp_status,emp_service FROM EMPLOYEE ORDER BY(emp_id) DESC")
         rows = cur.fetchall()
 
+        row_count = 1
         if rows:
             for row_idx, row_data in enumerate(rows):
                 for col_idx, col_data in enumerate(row_data.values()):
                     item = QTableWidgetItem(str(col_data))
                     self.ui.tbl_employee.setItem(row_idx, col_idx, item)
+                self.ui.tbl_employee.insertRow(row_count)
+                row_count += 1
         # Close the cursor and the connection
         cur.close()
 
@@ -433,12 +445,16 @@ class MainWindow(QMainWindow):
 
             self.ui.tbl_bookings.clearContents()
 
+            row_count = 1
             if rows:
                 QMessageBox.information(self, "Message", "Booking Found!")
                 for row_idx, row_data in enumerate(rows):
                     for col_idx, col_data in enumerate(row_data.values()):
                         item = QTableWidgetItem(str(col_data))
                         self.ui.tbl_bookings.setItem(row_idx, col_idx, item)
+                    self.ui.tbl_bookings.insertRow(row_count)
+                    row_count += 1
+
             else:
                 QMessageBox.warning(self, "Warning", "Booking Not Found!")
             # Close the cursor
@@ -585,7 +601,7 @@ class MainWindow(QMainWindow):
 
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
             cur.execute(
-                "SELECT srv_id,srv_category,srv_name,srv_time,srv_fee,srv_type FROM SERVICE WHERE srv_name = '"+self.ui.txt_service.text()+"'")
+                "SELECT srv_id,srv_category,srv_name,srv_time,srv_fee,srv_type FROM SERVICE WHERE srv_name = '"+self.ui.txt_service.text()+"' AND srv_type='"+self.ui.drp_vehicle_type.currentText()+"'")
             row = cur.fetchone()
 
             if row:
@@ -641,19 +657,31 @@ class MainWindow(QMainWindow):
                 self, "Message", "Please enter the service fee!")
         else:
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
-            cur.execute("INSERT INTO SERVICE (srv_category,srv_name,srv_time,srv_fee,srv_type)VALUES('"+self.ui.drp_service_category.currentText()+"','" +
-                        self.ui.txt_service.text()+"','"+self.ui.txt_timeallotment.text()+"',"+self.ui.txt_service_fee.text()+",'"+self.ui.drp_addvehicle_type.currentText()+"');")
-            # Commit the changes to the database
-            self.conn.commit()
+            cur.execute(
+                "SELECT srv_id,srv_category,srv_name,srv_time,srv_fee,srv_type FROM SERVICE WHERE srv_name = '"+self.ui.txt_service.text()+"' AND srv_type='"+self.ui.drp_addvehicle_type.currentText()+"'")
+            row = cur.fetchone()
 
-            # Close the cursor
-            cur.close()
-            QMessageBox.information(self, "Message", "Service Added!")
-            self.on_admin_services_clicked()
+            if row:
+                QMessageBox.information(
+                    self, "Message", "Service Has Already Existed!")
+
+            else:
+                # Close the cursor
+                cur.close()
+                cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
+                cur.execute("INSERT INTO SERVICE (srv_category,srv_name,srv_time,srv_fee,srv_type)VALUES('"+self.ui.drp_service_category.currentText()+"','" +
+                            self.ui.txt_service.text()+"','"+self.ui.txt_timeallotment.text()+"',"+self.ui.txt_service_fee.text()+",'"+self.ui.drp_addvehicle_type.currentText()+"');")
+                # Commit the changes to the database
+                self.conn.commit()
+
+                # Close the cursor
+                cur.close()
+                QMessageBox.information(self, "Message", "Service Added!")
+                self.on_admin_services_clicked()
 
     # service view
     def on_service_view_clicked(self):
-        if (self.srv_id and self.is_numeric(self.srv_id)):
+        if (self.srv_id):
             self.load_admin_ui_file("ui/admin_update_service.ui")
             self.ui.btn_update_service.clicked.connect(
                 self.on_update_service_clicked)
@@ -678,7 +706,7 @@ class MainWindow(QMainWindow):
 
             self.ui.txt_update_service.setText(self.srv_name)
             self.ui.txt_update_timeallotment.setText(self.srv_time)
-            self.ui.txt_update_service_fee.setText(str(self.srv_fee))
+            self.ui.txt_update_service_fee.setText(str(int(self.srv_fee)))
 
     def on_update_service_clicked(self):
         if (self.ui.txt_update_service.text() == ""):
@@ -712,6 +740,8 @@ class MainWindow(QMainWindow):
         cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute("DELETE FROM SERVICE WHERE srv_id="+str(self.srv_id))
 
+        # Commit the changes to the database
+        self.conn.commit()
         # Close the cursor
         cur.close()
         QMessageBox.information(self, "Message", "Service Deleted!")
@@ -796,12 +826,12 @@ class MainWindow(QMainWindow):
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
             cur.execute(
                 "INSERT INTO EMPLOYEE (emp_fname, emp_mname, emp_lname, emp_sex, emp_dob, emp_email, emp_password, emp_address, emp_mobile, emp_type, emp_service) "
-                "VALUES ('" + self.ui.txt_firstname.text() +
-                "', '" + self.ui.txt_middlename.text() +
-                "', '" + self.ui.txt_lastname.text() +
+                "VALUES ('" + self.trim_and_titlecase_strings(self.ui.txt_firstname.text()) +
+                "', '" + self.trim_and_titlecase_strings(self.ui.txt_middlename.text()) +
+                "', '" + self.trim_and_titlecase_strings(self.ui.txt_lastname.text()) +
                 "', '" + self.ui.drp_employee_sex.currentText() +
                 "', '" + self.ui.date_dob_emp.text() +
-                "', '" + self.ui.txt_emp_email.text() +
+                "', '" + self.ui.txt_emp_email.text().strip() +
                 "', '" + self.ui.txt_add_emp_password.text() +
                 "', '" + self.ui.txt_emp_houseadd.toPlainText() +
                 "', '" + str(self.ui.txt_add_emp_contactnum.text()) +
@@ -879,12 +909,12 @@ class MainWindow(QMainWindow):
                 self, "Message", "Please enter the mobile number!")
         else:
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
-            cur.execute("UPDATE EMPLOYEE SET emp_fname='" + self.ui.txt_firstname.text() +
-                        "', emp_mname='" + self.ui.txt_middlename.text() +
-                        "', emp_lname='" + self.ui.txt_lastname.text() +
+            cur.execute("UPDATE EMPLOYEE SET emp_fname='" + self.trim_and_titlecase_strings(self.ui.txt_firstname.text()) +
+                        "', emp_mname='" + self.trim_and_titlecase_strings(self.ui.txt_middlename.text()) +
+                        "', emp_lname='" + self.trim_and_titlecase_strings(self.ui.txt_lastname.text()) +
                         "', emp_type='" + self.ui.drp_emp_type.currentText() +
                         "', emp_mobile='" + self.ui.txt_add_emp_contactnum.text() +
-                        "', emp_email='" + self.ui.txt_emp_email.text() +
+                        "', emp_email='" + self.ui.txt_emp_email.text().strip() +
                         "', emp_password='" + self.ui.txt_add_emp_password.text() +
                         "', emp_address='" + self.ui.txt_emp_houseadd.toPlainText() +
                         "', emp_sex='" + self.ui.drp_employee_sex.currentText() +
@@ -916,8 +946,6 @@ class MainWindow(QMainWindow):
                 sales_months.append(sales['sales'])
             else:
                 sales_months.append(0)
-        for i in range(len(sales_months)):
-            print(sales_months[i])
 
         self.new_window = BarChart(
             sales_months, "Sales")
@@ -936,8 +964,7 @@ class MainWindow(QMainWindow):
                 sales_months.append(int(revenue['revenue']))
             else:
                 sales_months.append(0)
-        for i in range(len(sales_months)):
-            print(sales_months[i])
+
         self.new_window = BarChart(
             sales_months, "Revenue")
         self.new_window.show()
@@ -1026,7 +1053,7 @@ class MainWindow(QMainWindow):
 
         cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute("SELECT inv_id, CONCAT(cus_fname,' ',cus_mname,' ',cus_lname),srv_name,DATE(INVOICE.date_created) AS date_finished" +
-                    " FROM INVOICE INNER JOIN BOOK USING(book_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) ORDER BY(date_finished) LIMIT 10")
+                    " FROM INVOICE INNER JOIN BOOK USING(book_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) ORDER BY(date_finished) DESC LIMIT 10")
         rows = cur.fetchall()
 
         if rows:
@@ -1082,14 +1109,17 @@ class MainWindow(QMainWindow):
         self.cus_id = ""
         cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute(
-            "SELECT cus_id, cus_fname, cus_mname, cus_lname,cus_mobile,cus_email,cus_sex,cus_address,cus_status,DATE(date_created) FROM CUSTOMER ORDER BY(date_created)")
+            "SELECT cus_id, cus_fname, cus_mname, cus_lname,cus_mobile,cus_email,cus_sex,cus_address,cus_status,DATE(date_created) FROM CUSTOMER ORDER BY(date_created) DESC")
         rows = cur.fetchall()
-
+        row_count = 1
         if rows:
             for row_idx, row_data in enumerate(rows):
                 for col_idx, col_data in enumerate(row_data.values()):
                     item = QTableWidgetItem(str(col_data))
                     self.ui.tbl_customer.setItem(row_idx, col_idx, item)
+                self.ui.tbl_customer.insertRow(row_count)
+                row_count += 1
+
         # Close the cursor
         cur.close()
 
@@ -1130,11 +1160,14 @@ class MainWindow(QMainWindow):
             " FROM BOOK INNER JOIN EMPLOYEE USING(emp_id) INNER JOIN CUSTOMER USING(cus_id) INNER JOIN SERVICE USING(srv_id) WHERE book_status != 'Finished' ORDER BY(date_created) DESC")
         rows = cur.fetchall()
 
+        row_count = 1
         if rows:
             for row_idx, row_data in enumerate(rows):
                 for col_idx, col_data in enumerate(row_data.values()):
                     item = QTableWidgetItem(str(col_data))
                     self.ui.tbl_bookings.setItem(row_idx, col_idx, item)
+                self.ui.tbl_bookings.insertRow(row_count)
+                row_count += 1
         # Close the cursor
         cur.close()
 
@@ -1180,7 +1213,7 @@ class MainWindow(QMainWindow):
             self.on_bookings_page_clicked()
 
     def on_bookings_view_clicked(self):
-        if (self.book_id and self.is_numeric(self.book_id)):
+        if (self.book_id):
             self.load_ui_file("ui/Booking_details.ui")
             self.ui.btn_booking_update.clicked.connect(
                 self.btn_booking_update_clicked)
@@ -1241,12 +1274,15 @@ class MainWindow(QMainWindow):
 
             self.ui.tbl_bookings.clearContents()
 
+            row_count = 1
             if rows:
                 QMessageBox.information(self, "Message", "Booking Found!")
                 for row_idx, row_data in enumerate(rows):
                     for col_idx, col_data in enumerate(row_data.values()):
                         item = QTableWidgetItem(str(col_data))
                         self.ui.tbl_bookings.setItem(row_idx, col_idx, item)
+                    self.ui.tbl_bookings.insertRow(row_count)
+                    row_count += 1
             else:
                 QMessageBox.warning(self, "Warning", "Booking Not Found!")
             # Close the cursor
@@ -1285,16 +1321,20 @@ class MainWindow(QMainWindow):
     # book
     def on_book_page_clicked(self):
         self.load_ui_file("ui/Book_page.ui")
-
+        self.service_employee_assignment()
+        self.ui.txt_service_fee.setText(str(self.fees[0]))
         self.ui.drp_service_cat.currentTextChanged.connect(
             self.service_employee_assignment)
+
         self.ui.drp_vehicle_type.currentTextChanged.connect(
             self.service_employee_assignment)
+
+        self.ui.drp_service.currentTextChanged.connect(
+            self.service_fee_changed)
 
         self.ui.btn_searchcus.clicked.connect(self.customer_checker)
         self.ui.btn_cancel.clicked.connect(self.on_books_clicked)
         self.ui.btn_submit.clicked.connect(self.on_books_submit_clicked)
-        self.service_employee_assignment()
 
     def book_fields_checker(self):
         if (self.ui.txt_cusid.text() == "" and self.is_numeric(self.ui.txt_cusid.text())):
@@ -1318,6 +1358,10 @@ class MainWindow(QMainWindow):
         else:
             return True
 
+    def service_fee_changed(self):
+        self.ui.txt_service_fee.setText(
+            str(self.fees[self.ui.drp_service.currentIndex()]))
+
     def customer_checker(self):
         output = self.on_book_btn_searchcus_clicked()
         if (output == 'y'):
@@ -1329,9 +1373,6 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Warning", "Sorry, Customer Not Found!")
 
     def service_employee_assignment(self):
-
-        self.current_customer_id = self.ui.txt_cusid.text()
-
         self.ui.txt_service_fee.setText("0.00")
         cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
         cur.execute("SELECT srv_id,srv_name,srv_fee,srv_time FROM SERVICE WHERE srv_category='" +
@@ -1342,14 +1383,15 @@ class MainWindow(QMainWindow):
 
         self.service_ids = []
         self.service_time = []
+        self.fees = []
         if rows:
 
             for row in rows:
                 self.service_ids.append(row['srv_id'])
                 self.service_time.append(row['srv_time'])
+                self.fees.append(row['srv_fee'])
                 column_value = row['srv_name']
                 self.ui.drp_service.addItem(str(column_value))
-            self.ui.txt_service_fee.setText(str(row['srv_fee']))
 
         cur.execute("SELECT DISTINCT(emp_id),emp_fname,emp_mname,emp_lname,COUNT(book_id) AS pendings" +
                     " FROM EMPLOYEE LEFT JOIN BOOK USING(emp_id)" +
@@ -1390,42 +1432,43 @@ class MainWindow(QMainWindow):
                 return False
 
     def on_books_submit_clicked(self):
-        cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
-        cur.execute("SELECT book_end FROM BOOK" +
-                    " WHERE emp_id='"+str(self.employee_ids[self.ui.drp_assigned.currentIndex()])+"'" +
-                    " AND book_end >= CURRENT_DATE " +
-                    " ORDER BY (book_end) DESC "
-                    )
-        row = cur.fetchone()
+        if (self.book_fields_checker()):
+            cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
+            cur.execute("SELECT book_end FROM BOOK" +
+                        " WHERE emp_id='"+str(self.employee_ids[self.ui.drp_assigned.currentIndex()])+"'" +
+                        " AND book_end >= CURRENT_DATE " +
+                        " ORDER BY (book_end) DESC "
+                        )
+            row = cur.fetchone()
 
-        if (row):
-            self.latest_booking_end_date = row['book_end']
-        else:
-            self.latest_booking_end_date = date.today()
+            if (row):
+                self.latest_booking_end_date = row['book_end']
+            else:
+                self.latest_booking_end_date = date.today()
 
-        cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
-        cur.execute(
-            "INSERT INTO BOOK " +
-            "(book_type,book_total,book_vcl_plate,book_vcl_brand,book_vcl_model,emp_id,cus_id,srv_id,book_start,book_end,book_details) " +
-            "VALUES ('" + self.ui.drp_service_type.currentText() +
-            "', '" + str(self.ui.txt_service_fee.text()) +
-            "', '" + self.ui.txt_vehicleplate.text() +
-            "', '" + self.ui.txt_vehicle_brand.text() +
-            "', '" + self.ui.txt_vehicle_model.text() +
-            "', " + str(self.employee_ids[self.ui.drp_assigned.currentIndex()]) +
-            ", " + str(self.ui.txt_cusid.text()) +
-            ", " + str(self.service_ids[self.ui.drp_service.currentIndex()]) +
-            ", '" + str(self.latest_booking_end_date) +
-            "', '" + str(self.latest_booking_end_date + timedelta(days=float(self.service_time[self.ui.drp_service.currentIndex()]))) +
-            "', '" + self.ui.txt_details.toPlainText() + "');")
+            cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
+            cur.execute(
+                "INSERT INTO BOOK " +
+                "(book_type,book_total,book_vcl_plate,book_vcl_brand,book_vcl_model,emp_id,cus_id,srv_id,book_start,book_end,book_details) " +
+                "VALUES ('" + self.ui.drp_service_type.currentText() +
+                "', '" + str(self.ui.txt_service_fee.text()) +
+                "', '" + self.ui.txt_vehicleplate.text() +
+                "', '" + self.ui.txt_vehicle_brand.text() +
+                "', '" + self.ui.txt_vehicle_model.text() +
+                "', " + str(self.employee_ids[self.ui.drp_assigned.currentIndex()]) +
+                ", " + str(self.ui.txt_cusid.text()) +
+                ", " + str(self.service_ids[self.ui.drp_service.currentIndex()]) +
+                ", '" + str(self.latest_booking_end_date) +
+                "', '" + str(self.latest_booking_end_date + timedelta(days=float(self.service_time[self.ui.drp_service.currentIndex()]))) +
+                "', '" + self.ui.txt_details.toPlainText() + "');")
 
-        # Commit the changes to the database
-        self.conn.commit()
+            # Commit the changes to the database
+            self.conn.commit()
 
-        # Close the cursor
-        cur.close()
-        QMessageBox.information(self, "Message", "Booking Sucessful!")
-        self.on_books_clicked()
+            # Close the cursor
+            cur.close()
+            QMessageBox.information(self, "Message", "Booking Sucessful!")
+            self.on_books_clicked()
 
     def add_table_service(self):
         self.new_window.close()
@@ -1651,11 +1694,11 @@ class MainWindow(QMainWindow):
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
             cur.execute(
                 "INSERT INTO CUSTOMER (cus_fname, cus_mname, cus_lname,cus_mobile,cus_email,cus_sex,cus_address) " +
-                "VALUES ('" + self.ui.txt_firstname.text() +
-                "', '" + self.ui.txt_middlename.text() +
-                "', '" + self.ui.txt_lastname.text() +
+                "VALUES ('" + self.trim_and_titlecase_strings(self.ui.txt_firstname.text()) +
+                "', '" + self.trim_and_titlecase_strings(self.ui.txt_middlename.text()) +
+                "', '" + self.trim_and_titlecase_strings(self.ui.txt_lastname.text()) +
                 "', '" + str(self.ui.txt_mobilenum.text()) +
-                "', '" + self.ui.txt_cus_email.text() +
+                "', '" + self.ui.txt_cus_email.text().strip() +
                 "', '" + self.ui.drp_cus_sex.currentText() +
                 "', '" + self.ui.txt_cus_address.toPlainText() + "');")
 
@@ -1712,11 +1755,11 @@ class MainWindow(QMainWindow):
         else:
             # cus_id, cus_fname, cus_mname, cus_lname,cus_mobile,cus_email,cus_sex,cus_address,cus_status
             cur = self.conn.cursor(cursor_factory=extras.RealDictCursor)
-            cur.execute("UPDATE CUSTOMER SET cus_fname='" + self.ui.txt_firstname.text() +
-                        "', cus_mname='" + self.ui.txt_middlename.text() +
-                        "', cus_lname='" + self.ui.txt_lastname.text() +
+            cur.execute("UPDATE CUSTOMER SET cus_fname='" + self.trim_and_titlecase_strings(self.ui.txt_firstname.text()) +
+                        "', cus_mname='" + self.trim_and_titlecase_strings(self.ui.txt_middlename.text()) +
+                        "', cus_lname='" + self.trim_and_titlecase_strings(self.ui.txt_lastname.text()) +
                         "', cus_mobile='" + str(self.ui.txt_mobilenum.text()) +
-                        "', cus_email='" + self.ui.txt_cus_email.text() +
+                        "', cus_email='" + self.ui.txt_cus_email.text().strip() +
                         "', cus_sex='" + self.ui.drp_cus_sex.currentText() +
                         "', cus_address='" + self.ui.txt_cus_address.toPlainText() +
                         "', cus_status='" + self.ui.drp_cus_status.currentText() +
@@ -1744,6 +1787,13 @@ class MainWindow(QMainWindow):
 
     def is_mobile(self, string):
         return string.isdigit() and len(string) == 11
+
+    def trim_and_titlecase_strings(self, string):
+        if (string):
+            trimmed_string = string.strip().title()
+            return trimmed_string
+        else:
+            return ''
 
 
 if __name__ == "__main__":

@@ -1,0 +1,19 @@
+CREATE OR REPLACE FUNCTION create_invoice()
+RETURNS TRIGGER AS
+$$
+BEGIN
+	IF (SELECT COUNT(*) FROM INVOICE WHERE book_id = old.book_id)>0 AND new.book_status='Finished' THEN
+		INSERT INTO INVOICE (book_id) VALUES (old.book_id);
+		RETURN NEW;
+	END IF;
+	
+END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE TRIGGER trg_create_invoice
+		AFTER UPDATE ON BOOK
+		FOR EACH ROW
+		EXECUTE FUNCTION create_invoice();
+
+
+
